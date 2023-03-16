@@ -31,7 +31,7 @@ int main(){
         lseek(fd,-5,SEEK_CUR);
         num=read(fd,buffer,5);
         sscanf(buffer, "%d", &offset);
-        // printf("%d\n",offset);
+        printf("%d\n",offset);
         lseek(fd,offset,SEEK_END);
         sprintf(buffer, "%d", offset + 1);
         write(fd,buffer,5);

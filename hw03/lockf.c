@@ -18,7 +18,7 @@ int main(){
     char buffer[BUF_SIZE];
     int offset=0;
     // fd = open("flock.db",O_WRONLY);
-    fd = open("flock.db", O_RDWR, S_IRUSR| S_IWUSR);
+    fd = open("lockf.db", O_RDWR, S_IRUSR| S_IWUSR);
 	
     struct timespec n_sleep;
     n_sleep.tv_sec=0;//secondes sleep duration
@@ -38,6 +38,5 @@ int main(){
         lockf(fd,F_ULOCK,0);
 
     }
-    getchar();
     return 0;
 }
