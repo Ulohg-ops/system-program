@@ -5,7 +5,8 @@ flock:flock.c
 lockf:lockf.c
 	gcc lockf.c -g -o lockf
 clean:
-	rm *.o
+	rm flock
+	rm lockf
 	rm flock.db
 	rm lockf.db
 
