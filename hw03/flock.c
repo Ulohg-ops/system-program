@@ -35,6 +35,7 @@ int main(){
         lseek(fd,offset,SEEK_END);
         sprintf(buffer, "%d", offset + 1);
         write(fd,buffer,5);
+        fsync(fd);
         flock(fd,LOCK_UN);
     }
     getchar();
