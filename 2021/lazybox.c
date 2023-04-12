@@ -25,8 +25,12 @@ int main() {
                     j++;
                 }
             }
-            chdir(p[1]); // 使用第二個子字串作為要切換的目錄名稱
-        }else if(strcmp(command,"sakai\n")==0){
+            p[word][j]='\0';
+            chdir(p[1]); 
+        }else if(command[0] == 'l' && command[1] == 'n'){
+            symlink("~/Desktop/system-program", "~/Desktop/system-program/2021/ewq.out");
+        }
+        else if(strcmp(command,"sakai\n")==0){
             printf("%s\n","sadkodsa");
         }else {
         system(command);
