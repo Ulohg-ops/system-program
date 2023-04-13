@@ -15,6 +15,14 @@ int main(int argc, char** argv) {
     printf("ruid = %s, ", getpwuid(ruid)->pw_name);
     printf("euid = %s, ", getpwuid(euid)->pw_name);
     printf("suid = %s\n", getpwuid(suid)->pw_name);
-    // system("chown root test.txt");
-    chown("./test.txt",euid,euid);
+
+   setuid(0);
+    getresuid(&ruid, &euid, &suid);
+    printf("ruid = %d, euid = %d, suid = %d\n", ruid,euid, suid);
+    printf("ruid = %s, ", getpwuid(ruid)->pw_name);
+    printf("euid = %s, ", getpwuid(euid)->pw_name);
+    printf("suid = %s\n", getpwuid(suid)->pw_name);
+
+    // system("chown gorden test.txt");
+    // chown("./test.txt",euid,euid);
 }
