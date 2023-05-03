@@ -4,6 +4,7 @@
 #include <string.h>
 
 int main() {
+    
     while(1) {
         char command[4096];
         printf("lazybox$");
@@ -25,20 +26,11 @@ int main() {
                     j++;
                 }
             }
-            p[word][j]='\0';
-            printf("%s",p[1]);
-            printf("%d",strcmp("/",p[1]));//比較string是否相等 相等回傳0
-            
+            p[word][j-1]='\0';
             chdir(p[1]); 
-            //獲取一個字串 之後切割放在陣列中 然後把陣列第2格的字丟到fun當中 我卡在字串處理
-            //ex:輸入cd / 丟"/"  到chdir() 中
-            //正常來說chdir("/") 可以成功執行 但是我切割之後就不行  
-            //我不知道哪裡有問題 chatgpt也不會 ＝ ＝
-            //how to try
-            //就一樣是 "/"
-
         }else if(command[0] == 'l' && command[1] == 'n'){
-            symlink("~/Desktop/system-program", "~/Desktop/system-program/2021/ewq.out");
+            symlink("/home/ulohg/Desktop/system-program/2021/a.out", "/home/ulohg/Desktop/system-program/cxzcxz");
+            perror("dasdsa");
         }
         else if(strcmp(command,"sakai\n")==0){
             printf("%s\n","sadkodsa");
