@@ -30,7 +30,7 @@ void sighandler(int signo) {
     // printf("%d\n",signo);
     if (signo == SIGINT) {
         printf("按下ctr-c，但殺不死我\n");
-        sleep(10);  //假裝在ctr-c裡面運算了10秒鐘
+        sleep(10);
     }
     if (signo == SIGTSTP)
         printf("按下ctr-z，但殺不死我\n");
@@ -53,12 +53,11 @@ int main(int argc, char** argv) {
     }
 
     // 使用者按下ctr-c，OS直接忽略ctr-c，然後這個signal『『不會』』送給這個task
-    do {
         printf("告訴作業系統，使用者按下ctr-c時，這個 「訊號（singal）」不處理\n");
-        assert(signal(SIGINT, SIG_IGN)!=SIG_ERR);
-    }while(0);
+        assert(signal(SIGINT, sighandler)!=SIG_ERR);
 
-    printf("SIGKILL是直接殺掉一個task\n");
+
+    // printf("SIGKILL是直接殺掉一個task\n");
     if (signal(SIGKILL, sighandler) == SIG_ERR) {
         printf("無法改變SIGKILL的行為\n");
         perror("SIGKILL的問題，具體來說是：");
@@ -72,7 +71,7 @@ int main(int argc, char** argv) {
 
     signal(SIGTSTP, sighandler);
 
-    //測試在fork的環境下是child是否繼承parent的signal的設定
+    // //測試在fork的環境下是child是否繼承parent的signal的設定
     int child_pid = fork();
     if (child_pid ==0) {    //child
         printf("child：child準備執行execv('ls')，等一下試著按下ctr-c\n");
