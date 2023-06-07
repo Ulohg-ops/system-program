@@ -3,7 +3,6 @@
 >> ls -R /
 ctr-c
 */
-#include <ctype.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -42,12 +41,7 @@ ctr-c
 /*
 全域變數，放解析過後的使用者指令（字串陣列）
 */
-char* cmdArr[10][256];
 char* argVect[256];
-char* cmdString[256];
-int cmdParaNumber[256];
-int cmdNumber=0;
-int cmdIdx=0;
 
 //下列三個變數作為main和signal handler溝通用
 sigjmp_buf jumpBuf;
@@ -88,47 +82,6 @@ void ctrC_handler(int sigNumber) {
     }
 }
 
-
-char *ltrim(char *s){ 
-   while(isspace(*s)) s++;
-    return s;
-}
-
-char *rtrim(char *s)
-{
-    char* back = s + strlen(s);
-    while(isspace(*--back));
-    *(back+1) = '\0';
-    return s;
-}
-
-char *trim(char *s)
-{
-    return rtrim(ltrim(s)); 
-}
-void parseStringAndSplit(char* str) {
-    int idx=0;
-    char* retPtr;
-    retPtr=strtok(str, " \n");
-    while(retPtr != NULL) {
-        cmdArr[cmdIdx][idx++] = retPtr;
-        retPtr=strtok(NULL, " \n");
-        cmdParaNumber[cmdIdx]++;
-    }
-    cmdArr[cmdIdx++][idx]=NULL;
-
-}
-void parseStringByPipe(char* str) {
-    int idx=0;
-    char* retPtr;
-    retPtr=strtok(str, "|\n");
-    while(retPtr != NULL) {
-        cmdString[idx++] = retPtr;
-        retPtr=strtok(NULL, "|\n");
-        cmdNumber++;
-    }
-    cmdString[idx]=NULL;
-}
 /*
 parseString：將使用者傳進的命令轉換成字串陣列
 str：使用者傳進的命令
@@ -155,9 +108,6 @@ void parseString(char* str, char** cmd) {
 */
 
 int main (int argc, char** argv) {
-    memset(cmdArr,'\0',sizeof(cmdArr));
-    memset(cmdParaNumber,'\0',sizeof(cmdParaNumber));
-    memset(cmdString,'\0',sizeof(cmdString));
     char cmdLine[4096];
     char hostName[256];
     char cwd[256];
@@ -180,7 +130,6 @@ int main (int argc, char** argv) {
         hasChild = 0;
         argVect[0]=NULL;
         //抓取主機名稱、用戶名稱
-        cmdNumber=0;
         loginName = getlogin();
         gethostname(hostName, 256);
         /*
@@ -211,48 +160,25 @@ int main (int argc, char** argv) {
         */
         fgets(cmdLine, 4096, stdin);
         //printf("cmdLine = %s\n",cmdLine);
-        
-        if (strlen(cmdLine)>1){
-            parseStringByPipe(cmdLine);//判斷長度是否大於1，判斷「使用者無聊按下enter鍵」
-            printf("%d",cmdNumber);
-            for(int i=0;i<cmdNumber;i++){
-                parseStringAndSplit(trim(cmdString[i]));
-            }
-        }else{
+        if (strlen(cmdLine)>1)  //判斷長度是否大於1，判斷「使用者無聊按下enter鍵」
+            parseString(cmdLine, &exeName);
+        else
             continue;
-        }
-
-
-
-        // for(int i=0;i<cmdNumber;i++){
-        //     for(int j=0;j<cmdParaNumber[i];j++){
-        //         printf("%s",cmdArr[i][j]);
-        //     }
-        //         printf("\n");
-        // }
-
-        if (cmdNumber==1&&strcmp(cmdArr[0][0], "^c") == 0) {   //使用者按下control-c，^c是由signal handler放入
+        if (strcmp(exeName, "^c") == 0) {   //使用者按下control-c，^c是由signal handler放入
             //printf("ctr-c \n");
             printf("\n");
             continue;
         }
-
-        if (cmdNumber==1&&strcmp(cmdArr[0][0], "exit") == 0)   //內建指令exit
+        if (strcmp(exeName, "exit") == 0)   //內建指令exit
             break;
-        if (cmdNumber==1&&strcmp(cmdArr[0][0], "cd") == 0) {
-               //內建指令cd
+        if (strcmp(exeName, "cd") == 0) {   //內建指令cd
             if (strcmp(argVect[1], "~")==0)
                 chdir(getenv("HOME"));
             else
                 chdir(argVect[1]);
             continue;
         }
-        if (cmdNumber==1&&strcmp(cmdArr[0][0], "stderr") == 0) {
-         
-            
-        }else{
-            
-        }
+        // printf("%s\n","sad");
         clock_gettime(CLOCK_MONOTONIC, &statTime);
         pid = fork();   //除了exit, cd，其餘為外部指令
         printf("pid: %d\n",pid);
@@ -266,7 +192,7 @@ int main (int argc, char** argv) {
                 dup(pipefd[1]); //將pipefd[1]複製到stdout
                 close(pipefd[1]);   //將沒用到的關閉
                 close(pipefd[0]);   //將沒用到的關閉
-                execvp(cmdArr[0][0], cmdArr[0]);//執行ls，ls會將東西藉由stdout輸出到pipefd[1]
+                execlp("ls", "ls", NULL);//執行ls，ls會將東西藉由stdout輸出到pipefd[1]
             }else{    
                 int pid2 = fork();//產生第二個child
                 if (pid2==0) {
@@ -274,7 +200,7 @@ int main (int argc, char** argv) {
                     dup(pipefd[0]); //將pipefd[0]複製到stdin
                     close(pipefd[1]);   //將沒用到的關閉
                     close(pipefd[0]);   //將沒用到的關閉
-                    execvp(cmdArr[1][0],cmdArr[1]);   //執行wc，wc將透過stdin從pipefd[0]讀入資料
+                    execlp("wc","wc",  NULL);   //執行wc，wc將透過stdin從pipefd[0]讀入資料
                 }
             }   
             close(pipefd[0]); 
@@ -290,6 +216,7 @@ int main (int argc, char** argv) {
             childPid = pid;/*通知singal handler，如果使用者按下ctr-c時，要處理這個child*/
             hasChild = 1;/*通知singal handler，正在處理child*/
             printf("wait for pid: %d\n",wait(&wstatus));//for pid
+            printf("%s\n","5566");
             //  printf("wait for pid: %d\n",wait3(&wstatus, 0, &resUsage));//for pid2       ;
             clock_gettime(CLOCK_MONOTONIC, &endTime);
             //wait(&wstatus);
