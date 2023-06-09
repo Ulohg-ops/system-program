@@ -1,4 +1,4 @@
-all:mynohup test lshell myshell
+all:mynohup test lshell myshell parseString
 
 mynohup:mynohup.c
 	gcc mynohup.c -g -o mynohup
@@ -8,6 +8,8 @@ lshell:lshell.c
 	gcc lshell.c -g -o lshell
 myshell:myshell.c
 	gcc myshell.c -g -o myshell
+parseString:parseString.c
+	gcc parseString.c -g -o parseString
 
 clear:
-	mv mynohup lshell test myshell
+	mv mynohup lshell test myshell parseString

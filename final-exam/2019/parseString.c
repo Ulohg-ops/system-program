@@ -11,10 +11,10 @@
 #include <setjmp.h>
 #include <sys/resource.h> 
 
-char* cmdVect[10][256];
+char* cmdParaArr[10][256];//紀錄每個指令有幾個參數
 char* argVect[256];
-char *cmdArr[256];
-int cmdParaNumber[256];
+char *cmdArr[256];//使用者輸入的指令
+int cmdParaNumber[10];//指令參數數量
 int cmdNumber=0;
 int cmdIdx=0;
 
@@ -53,14 +53,15 @@ void parseStringAndSplit(char* str) {
     char* retPtr;
     retPtr=strtok(str, " \n");
     while(retPtr != NULL) {
-        cmdVect[cmdIdx][idx++] = retPtr;
+        cmdParaArr[cmdIdx][idx++] = retPtr;
         retPtr=strtok(NULL, " \n");
         cmdParaNumber[cmdIdx]++;
     }
-    cmdVect[cmdIdx++][idx]=NULL;
+    cmdParaArr[cmdIdx++][idx]=NULL;
 
 }
 void parseStringByPipe(char* str) {
+    cmdNumber=0;
     int idx=0;
     char* retPtr;
     retPtr=strtok(str, "|\n");
@@ -78,9 +79,12 @@ int main (int argc, char** argv) {
     for(int i=0;i<cmdNumber;i++){
         parseStringAndSplit(trim(cmdArr[i]));
     }
+    for(int i=0;i<3;i++){
+        printf("%d\n",cmdParaNumber[i]);
+    }
     for(int i=0;i<cmdNumber;i++){
         for(int j=0;j<cmdParaNumber[i];j++){
-            printf("%s\n",cmdVect[i][j]);
+            printf("%s\n",cmdParaArr[i][j]);
         }
             printf("-----------\n");
     }
