@@ -1,0 +1,38 @@
+This is essentially what a shell does if build a redirection chain, i.e. something like
+
+ls | grep foo | sort | uniq
+There are some excellent introducionary texts on Unix programming, in which a simple shell is implemented through the book. And one of the tasks of a shell is redirection. One of these books is "Linux Application Programming" by Michael K. Johnson and Erik W. Troan.
+
+The book's homepage: http://ladweb.net/
+
+To build a chain of redirections for N processes you need N-1 pipes. For each redirection you create a pipe using the pipe(int fds[2]) system call. After fork()ing, but before execving use dup2(int from, int to) to "connect" a pipe's end to the standard input (0) or standard output of each process. Here's a overly simplified code, without error checking:
+
+int pipe_A[2];
+int pipe_B[2];
+
+pipe(pipe_A);
+pipe(pipe_B);
+
+pid_t pid_A, pid_B, pid_C;
+
+if( !(pid_A = fork()) ) {
+    dup2(pipe_A[1], 1); /* redirect standard output to pipe_A write end */
+    execv(...);
+}
+
+if( !(pid_B = fork()) ) {
+    dup2(pipe_A[0], 0); /* redirect standard input to pipe_A read end */
+    dup2(pipe_B[1], 1); /* redirect standard output to pipe_B write end */
+    execv(...);
+}
+
+if( !(pid_C = fork()) ) {
+    dup2(pipe_B[0], 0); /* redirect standard input to pipe_B read end */
+    execv(...);
+}
+Take note that the pipe's array indices have been choosen in a way that they reflect the standard input/output file descriptors if they're used for stdio redirection. This choice was not arbitrary.
+
+Of course you can connect pipes to any file descriptors (e.g. there are some applications, which expect their parent to open, say fd 3 and 4, connected to pipes) and most shells directly support this, too (for example 1>&3 will redirect stdout into fd 3). However the array indices for pipe(int fds[2]) are 0 and 1 of course. I'm just telling this, because I had some cargo-cult-programming students, which mindlessly took the target fds also for the pipe syscall array.
+
+To wait for all the children to finish use waitpid(-1, NULL, 0) – I think that's the -1 my pre-answerer meant, which means: Wait for all child processes to finish. The other option was calling wait() in a loop which will return the pid of the just terminated child. If called again and there's still a child running, it will block again. If there's no child left, it will return -1; I prefer the waitpid solution.
+

@@ -26,6 +26,7 @@ int main(int argc, char **argv) {
     int ret, wstat;
 
     //char **param={"EXENAME", NULL};
+    printf("parent's id is %d\n", getpid());
     printf("parent's group id is %d\n", getpgrp());
     pipe(pipefd);
     pid1 = fork();   //產生第一個child
